@@ -9,6 +9,7 @@ const router = createRouter({
       name: "home",
       component: Home,
       redirect: "/",
+
       children: [
         {
           path: "/",
@@ -30,5 +31,23 @@ const router = createRouter({
     },
   ],
 });
+// 全局路由守卫
+router.beforeEach((to, from, next) => {
+  const token = JSON.parse(localStorage.getItem("UInfo") || null);
 
+  // 需要身份验证的路由
+  if (!token?.body?.id) {
+    if (to.name !== "login") {
+      next({ name: "login" });
+    } else {
+      next();
+    }
+  } else {
+    if (to.name === "login") {
+      next({ name: "home" });
+    } else {
+      next();
+    }
+  }
+});
 export default router;

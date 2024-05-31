@@ -1,7 +1,9 @@
 <template>
   <div class="body">
     <div class="center">
-      <div class="heard"></div>
+      <div class="heard">
+        <heard></heard>
+      </div>
     </div>
     <div class="main">
       <router-view></router-view>
@@ -10,6 +12,7 @@
 </template>
 
 <script setup>
+import heard from "@/components/heard.vue";
 </script>
 
 <style scoped>
@@ -19,14 +22,15 @@
 }
 .heard {
   box-sizing: border-box;
-  height: 200px;
+  height: 220px;
   width: 1200px;
   margin: 0 auto;
-  background-color: blue;
+  background-color: rgb(255, 255, 255);
 }
 .main {
   width: 1200px;
   margin: 0 auto;
+  background-color: rgb(255, 255, 255);
 }
 .center {
   box-sizing: border-box;
