@@ -1,7 +1,65 @@
 <script setup>
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted, watch } from "vue";
 import { Search } from "@element-plus/icons-vue";
 import logo from "@/assets/images/logo.png";
+import { goodsTypeApi, brondListApi } from "@/utils/goods";
+import { useGoodsBrand } from "@/stores/goodsBrand";
+import { useGoodsList } from "@/stores/goodsList";
+const goodsStore = useGoodsList();
+const BrandStore = useGoodsBrand();
+const user = JSON.parse(localStorage.getItem("UInfo"));
+const typeList = ref([]);
+onMounted(async () => {
+  try {
+    const res = await goodsTypeApi();
+    typeList.value = res.data.body;
+    console.log(typeList.value);
+  } catch (error) {
+    Promise.reject(error);
+  }
+});
+// 获取品牌
+const getBrand = ref({
+  baseType: "",
+  subType: "",
+  brand: [],
+});
+
+const handleBrand = async (baseType, subType) => {
+  getBrand.value.subType = subType;
+  getBrand.value.baseType = baseType;
+  try {
+    await BrandStore.getBrand(getBrand.value);
+    await goodsStore.getGoodsList(getBrand.value);
+  } catch (error) {
+    Promise.reject(error);
+  }
+  console.log("111", getBrand.value);
+};
+import emitter from "@/utils/emitter.js";
+// 给emitter绑定send-brand事件
+emitter.on("send-brand", async (value) => {
+  getBrand.value.brand.push(value);
+  const index = getBrand.value.brand.indexOf(value);
+  if (index !== -1) {
+    getBrand.value.brand.splice(index, 1);
+  } else {
+    getBrand.value.brand.push(value);
+  }
+
+  try {
+    await goodsStore.getGoodsList(getBrand.value);
+  } catch (error) {
+    Promise.reject(error);
+  }
+  emitter.emit("send-getBrand", getBrand.value.brand);
+  console.log("{{}}", getBrand.value.brand);
+});
+emitter.on("send-arr", async (value) => {
+  getBrand.value.brand = value;
+  await goodsStore.getGoodsList(getBrand.value);
+  console.log(".000", getBrand.value.brand);
+});
 </script>
 
 <template>
@@ -11,7 +69,7 @@ import logo from "@/assets/images/logo.png";
       <div style="width: 300px; display: flex; justify-content: space-between">
         <spen>我的订单</spen>
         <spen>
-          <el-icon><User /></el-icon>admin
+          <el-icon><User /></el-icon> {{ user.body.userName }}
         </spen>
       </div>
     </div>
@@ -32,9 +90,21 @@ import logo from "@/assets/images/logo.png";
           display: flex;
           justify-content: center;
           align-items: center;
+          cursor: pointer;
         "
       >
-        <el-icon><ShoppingCartFull /></el-icon>
+        <el-dropdown>
+          <el-icon><ShoppingCartFull /></el-icon>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item>Action 1</el-dropdown-item>
+              <el-dropdown-item>Action 2</el-dropdown-item>
+              <el-dropdown-item>Action 3</el-dropdown-item>
+              <el-dropdown-item>Action 4</el-dropdown-item>
+              <el-dropdown-item>Action 5</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </div>
     </div>
     <div class="tyepList">
@@ -43,17 +113,18 @@ import logo from "@/assets/images/logo.png";
           <a href="#">分类</a
           ><span style="right: 10px; position: absolute">></span>
           <ul class="list2">
-            <li>
-              <a href="#">男装</a
-              ><span style="right: 10px; position: absolute">></span>
-            </li>
-            <li>
-              <a href="#">女装</a
-              ><span style="right: 10px; position: absolute">></span>
-            </li>
-            <li>
-              <a href="#">童装</a
-              ><span style="right: 10px; position: absolute">></span>
+            <li class="list1" v-for="(item, index) in typeList" :key="index">
+              <a href="#" @click.prevent="handleBrand(item.key, null)">{{
+                item.key
+              }}</a>
+              <span style="right: 10px; position: absolute">></span>
+              <ul class="list3">
+                <li v-for="(i, iIndex) in item.value" :key="iIndex">
+                  <a href="#" @click.prevent="handleBrand(item.key, i)">{{
+                    i
+                  }}</a>
+                </li>
+              </ul>
             </li>
           </ul>
         </li>
@@ -99,9 +170,11 @@ ol {
   padding: 0; /* 去除默认的内边距 */
   margin: 0; /* 去除默认的外边距 */
 }
+li {
+  cursor: pointer;
+}
 .tyepList > ul > li {
   display: inline-block;
-
   float: left;
   list-style-type: none;
 }
@@ -139,15 +212,36 @@ a {
   color: inherit; /* 继承父元素的颜色 */
 }
 .list2 {
+  display: none;
   width: 180px;
   background-color: rgb(255, 240, 240);
   color: #000;
   position: relative;
 }
+.type:hover .list2 {
+  display: block;
+}
 .list2 > li {
-  box-sizing: border-box;
+  /* box-sizing: border-box; */
   width: 180px;
   text-align: left;
   padding-left: 10px;
+  position: relative;
+}
+.list2 > li:hover {
+  background-color: rgb(228, 228, 228);
+}
+.list3 {
+  display: none;
+  position: absolute;
+  width: 180px;
+  top: 0px;
+  left: 180px;
+  padding-left: 10px;
+  margin-left: 10px;
+  background-color: rgb(255, 240, 240);
+}
+.list1:hover .list3 {
+  display: block;
 }
 </style>

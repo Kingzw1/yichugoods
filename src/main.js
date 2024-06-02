@@ -1,5 +1,5 @@
 import "normalize.css";
-
+import "@/assets/tolerant.css";
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import VueLazyload from "vue-lazyload";
