@@ -6,13 +6,15 @@
       </div>
     </div>
     <div class="main">
-      <router-view></router-view>
+      <router-view :key="route.fullPath"></router-view>
     </div>
   </div>
 </template>
 
 <script setup>
 import heard from "@/components/heard.vue";
+import { useRoute } from "vue-router";
+const route = useRoute();
 </script>
 
 <style scoped>
@@ -25,6 +27,7 @@ import heard from "@/components/heard.vue";
   height: 220px;
   width: 1200px;
   margin: 0 auto;
+  /* border-bottom: 4px solid salmon; */
   background-color: rgb(255, 255, 255);
 }
 .main {

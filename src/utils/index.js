@@ -8,6 +8,7 @@ const service = axios.create({
     shop: "e+",
     "Content-Type": "application/x-www-form-urlencoded",
     Accept: "application/json",
+    // "Content-Type": "application/json",
   },
 });
 
@@ -21,7 +22,16 @@ service.interceptors.request.use(
         token: UInfo.body.id,
       };
     }
-
+    if (config.data && config.headers) {
+      // 判断数据的类型
+      if (
+        config.headers["Content-Type"] === "application/x-www-form-urlencoded"
+      ) {
+        config.headers["Content-Type"] = "application/x-www-form-urlencoded";
+      } else {
+        config.headers["Content-Type"] = "application/json";
+      }
+    }
     nProgress.start();
     return config;
   },

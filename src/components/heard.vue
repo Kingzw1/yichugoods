@@ -1,10 +1,14 @@
 <script setup>
-import { ref, reactive, onMounted, watch } from "vue";
+import { ref, onMounted } from "vue";
 import { Search } from "@element-plus/icons-vue";
 import logo from "@/assets/images/logo.png";
-import { goodsTypeApi, brondListApi } from "@/utils/goods";
+import { goodsTypeApi } from "@/utils/goods";
 import { useGoodsBrand } from "@/stores/goodsBrand";
 import { useGoodsList } from "@/stores/goodsList";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
 const goodsStore = useGoodsList();
 const BrandStore = useGoodsBrand();
 const user = JSON.parse(localStorage.getItem("UInfo"));
@@ -15,51 +19,41 @@ onMounted(async () => {
     typeList.value = res.data.body;
     console.log(typeList.value);
   } catch (error) {
-    Promise.reject(error);
+    return Promise.reject(error);
   }
 });
 // 获取品牌
-const getBrand = ref({
-  baseType: "",
-  subType: "",
-  brand: [],
-});
-
 const handleBrand = async (baseType, subType) => {
-  getBrand.value.subType = subType;
-  getBrand.value.baseType = baseType;
-  try {
-    await BrandStore.getBrand(getBrand.value);
-    await goodsStore.getGoodsList(getBrand.value);
-  } catch (error) {
-    Promise.reject(error);
-  }
-  console.log("111", getBrand.value);
+  // console.log(item, i);
+  goodsStore.getBrand.baseType = baseType;
+  goodsStore.getBrand.subType = subType;
+  await BrandStore.getBrand({ baseType, subType });
+  await router.push({
+    path: "/",
+    query: {
+      baseType,
+      subType,
+    },
+  });
 };
-import emitter from "@/utils/emitter.js";
-// 给emitter绑定send-brand事件
-emitter.on("send-brand", async (value) => {
-  getBrand.value.brand.push(value);
-  const index = getBrand.value.brand.indexOf(value);
-  if (index !== -1) {
-    getBrand.value.brand.splice(index, 1);
-  } else {
-    getBrand.value.brand.push(value);
-  }
-
-  try {
-    await goodsStore.getGoodsList(getBrand.value);
-  } catch (error) {
-    Promise.reject(error);
-  }
-  emitter.emit("send-getBrand", getBrand.value.brand);
-  console.log("{{}}", getBrand.value.brand);
-});
-emitter.on("send-arr", async (value) => {
-  getBrand.value.brand = value;
-  await goodsStore.getGoodsList(getBrand.value);
-  console.log(".000", getBrand.value.brand);
-});
+const goHome = async () => {
+  await router.push({
+    path: "/",
+    query: {},
+    params: {},
+  });
+  router.go(0);
+};
+const goCarlist = () => {
+  router.push({
+    name: "carList",
+  });
+};
+// 退出登录
+const outLogin = () => {
+  localStorage.removeItem("UInfo");
+  router.push({ name: "login" });
+};
 </script>
 
 <template>
@@ -70,11 +64,14 @@ emitter.on("send-arr", async (value) => {
         <spen>我的订单</spen>
         <spen>
           <el-icon><User /></el-icon> {{ user.body.userName }}
+          <el-button @click="outLogin">退出登录</el-button>
         </spen>
       </div>
     </div>
     <div class="search-heard">
-      <div class="logo-img"><img v-lazy="logo" alt="" /></div>
+      <div class="logo-img" @click="goHome" style="cursor: pointer">
+        <img v-lazy="logo" alt="" />
+      </div>
       <div>
         <el-input
           v-model="input1"
@@ -92,6 +89,7 @@ emitter.on("send-arr", async (value) => {
           align-items: center;
           cursor: pointer;
         "
+        @click="goCarlist"
       >
         <el-dropdown>
           <el-icon><ShoppingCartFull /></el-icon>
@@ -217,6 +215,7 @@ a {
   background-color: rgb(255, 240, 240);
   color: #000;
   position: relative;
+  z-index: 999;
 }
 .type:hover .list2 {
   display: block;
@@ -237,9 +236,14 @@ a {
   width: 180px;
   top: 0px;
   left: 180px;
-  padding-left: 10px;
+  /* padding-left: 10px; */
   margin-left: 10px;
   background-color: rgb(255, 240, 240);
+}
+.list3 > li:hover {
+  margin-left: 10px;
+
+  background-color: rgb(228, 228, 228);
 }
 .list1:hover .list3 {
   display: block;

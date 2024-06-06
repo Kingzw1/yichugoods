@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Home from "../views/Home.vue";
-
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -17,9 +16,14 @@ const router = createRouter({
           component: () => import("../views/goods.vue"),
         },
         {
-          path: "/yifu",
-          name: "yifu",
-          component: () => import("../views/yifu.vue"),
+          path: "/carList",
+          name: "carList",
+          component: () => import("../views/carList.vue"),
+        },
+        {
+          path: "/detail",
+          name: "detail",
+          component: () => import("../views/detail.vue"),
         },
       ],
     },
@@ -46,7 +50,12 @@ router.beforeEach((to, from, next) => {
     if (to.name === "login") {
       next({ name: "home" });
     } else {
-      next();
+      // 商品详细页ID检查
+      if (to.name === "detail" && !to.query.id) {
+        next(from.fullPath); // 重定向到首页
+      } else {
+        next();
+      }
     }
   }
 });

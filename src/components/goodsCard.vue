@@ -1,13 +1,25 @@
 <script setup>
-import { ref, reactive } from "vue";
-import bg1 from "@/assets/images/bg1.jpg";
 import { useGoodsList } from "@/stores/goodsList";
-
+import { useRouter } from "vue-router";
+const router = useRouter();
 const goodsStore = useGoodsList();
+const sendDetail = (id) => {
+  router.push({
+    name: "detail",
+    query: {
+      id,
+    },
+  });
+};
 </script>
 
 <template>
-  <div class="cardList" v-for="(item, index) in goodsStore.goodsList">
+  <div
+    class="cardList"
+    v-for="(item, index) in goodsStore.goodsList"
+    @click="sendDetail(item.id)"
+    :key="index"
+  >
     <img v-lazy="item.images[0]" alt="" />
     <p class="pOne">
       {{ item.goodsName }}

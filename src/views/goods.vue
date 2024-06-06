@@ -1,56 +1,40 @@
 <script setup>
-import { ref, reactive, onMounted, watch } from "vue";
+import { ref, onMounted } from "vue";
 import goodsCard from "@/components/goodsCard.vue";
 import { useGoodsBrand } from "@/stores/goodsBrand";
 import { useGoodsList } from "@/stores/goodsList";
-import emitter from "@/utils/emitter.js";
-
+import { useRoute } from "vue-router";
+const route = useRoute();
 const goodStore = useGoodsList();
 const brandStore = useGoodsBrand();
 const brandRef = ref(null);
-onMounted(() => {
+onMounted(async () => {
   try {
-    goodStore.getGoodsList();
+    await goodStore.getGoodsList();
+    goodStore.getBrand.baseType = route.query.baseType;
+    goodStore.getBrand.subType = route.query.subType;
+    console.log("1351465", route.query.subType, route.query.baseType);
+    await goodStore.getGoodsList(goodStore.getBrand);
   } catch (error) {
-    Promise.reject(error);
+    return Promise.reject(error);
   }
 });
+// 添加品牌
 const goodsBrand = (item) => {
-  emitter.emit("send-brand", item);
-  // if (brandList.value.length !== 0) {
-  //   emitter.emit("send-arr", brandList.value);
-  // } else {
-  //   brandList.value = [];
-  //   emitter.emit("send-arr", brandList.value);
-  // }
-};
-const brandList = ref([]);
-emitter.on("send-brand", (value) => {
-  const index = brandList.value.indexOf(value); // 检查目标值是否存在于数组中
-  if (index !== -1) {
-    // 如果存在，则从数组中删除该值
-    brandList.value.splice(index, 1);
+  // 判读数组中是否有这个品牌
+  const indeOf = goodStore.getBrand.brand.indexOf(item);
+  if (indeOf !== -1) {
+    // 如果有就删除
+    goodStore.getBrand.brand.splice(indeOf, 1);
   } else {
-    // 如果不存在，则将值添加到数组末尾
-    brandList.value.push(value);
+    // 如果没有就添加
+    goodStore.getBrand.brand.push(item);
   }
-});
+};
+// 删除品牌
 const delBrand = (index) => {
-  brandList.value.splice(index, 1);
-  if (brandList.value.length !== 0) {
-    emitter.emit("send-arr", brandList.value);
-  } else {
-    brandList.value = [];
-    emitter.emit("send-arr", brandList.value);
-  }
+  goodStore.getBrand.brand.splice(index, 1);
 };
-// watch(
-//   brandList,
-//   (newvale, oldvale) => {
-//     emitter.emit("send-arr", brandList.value);
-//   },
-//   { deep: true }
-// );
 </script>
 
 <template>
@@ -86,7 +70,7 @@ const delBrand = (index) => {
         <ul>
           <li
             class="brand-List"
-            v-for="(item, index) in brandList"
+            v-for="(item, index) in goodStore.getBrand.brand"
             :key="index"
           >
             {{ item }}
