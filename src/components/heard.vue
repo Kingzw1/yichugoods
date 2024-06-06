@@ -172,7 +172,7 @@ li {
   cursor: pointer;
 }
 .tyepList > ul > li {
-  display: inline-block;
+  display: block;
   float: left;
   list-style-type: none;
 }
